@@ -1,4 +1,23 @@
 # kql-scripts
+### Run this from the Azure Resource Graph Explorer
+
+## Find all NSGs with 22 open inbound from * (any) AND no NIC attached
+
+    resources 
+    | where type startswith 'microsoft.network/networksecuritygroups' 
+    | mv-expand rules=properties.securityRules
+    | where rules.properties.destinationPortRange in ("22")
+    | where rules.properties.access in ("Allow")
+    | where rules.properties.sourceAddressPrefix in ("*")
+    | where rules.properties.direction in ("Inbound")
+    | where properties['networkInterfaces'][0] == ""
+    | project 
+        name    = rules.name, 
+        access  = rules.properties.access, 
+        rule    = rules.properties.destinationPortRange, 
+        nsgname = name, 
+        group   = resourceGroup
+
 
 ## Find all NSGs with 3389 and 22 open inbound
 
@@ -14,7 +33,7 @@
         group   = resourceGroup
 
 ## Find all Azure storage accounts with public accessible set to TRUE, add TLS version also
-### Run this from the Azure Resource Graph Explorer
+
 
     resources
     | where type == "microsoft.storage/storageaccounts"
